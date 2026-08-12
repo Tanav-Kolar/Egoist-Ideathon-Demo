@@ -5,8 +5,10 @@ under the SIL Open Font License, Version 1.1, and were downloaded from Google Fo
 - Geist & Geist Mono: designed by Vercel. https://vercel.com/font
 - Instrument Serif: designed by Instrument. https://github.com/Instrument/instrument-serif
 
-Each is served here as a single variable-weight woff2 file (Google Fonts returns the
-same static file across the weight range for these families, so one download covers
-the full 400–700 axis used by this project).
+Google Fonts serves Geist and Geist Mono as variable-weight files. Those were instanced
+into true static per-weight woff2s with `fonttools varLib.instancer` (fvar table
+dropped) before being committed here — a simplification (smaller files, no variable-font
+ambiguity), not a bug fix: real Chrome renders the variable files correctly too.
+Instrument Serif ships from Google Fonts as an already-static file.
 
 Full license text: https://openfontlicense.org

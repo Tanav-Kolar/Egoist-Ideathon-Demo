@@ -3,43 +3,48 @@
    (lens tabs, vault rail, receipt ledger) are adapted from coathook-demo.html, which
    was a flow reference only — its warm-paper palette is not used here. */
 
-/* Discrete static weights (not a "100 900" variable range) pointing at the same file:
-   this pins Chrome to the font's named instances instead of interpolating a custom
-   instance per requested weight, which triggers a glyph-rasterization glitch in some
-   Chrome/Skia builds at narrow reflow widths (observed: solid-block glyphs). */
+/* True static instances (no fvar table), built with `fonttools varLib.instancer` from
+   the variable files Google Fonts serves, instead of static-weight @font-face rules
+   pointing at a variable binary. Not fixing a real bug — real, non-headless Chrome
+   renders these fonts correctly either way (verified). This was chasing a solid-block
+   glyph artifact that turned out to be specific to Puppeteer's `fullPage: true`
+   screenshot capture (a different word glitches on each capture, and it disappears
+   entirely on a normal scrolled-viewport screenshot) — a testing-tool quirk, not a
+   page bug. Kept as a harmless simplification: smaller files, no variable-font
+   ambiguity at all. */
 @font-face{
   font-family:"Geist";
-  src:url("../fonts/Geist-Variable.woff2") format("woff2");
+  src:url("../fonts/Geist-Regular.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Geist";
-  src:url("../fonts/Geist-Variable.woff2") format("woff2");
+  src:url("../fonts/Geist-Medium.woff2") format("woff2");
   font-weight:500; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Geist";
-  src:url("../fonts/Geist-Variable.woff2") format("woff2");
+  src:url("../fonts/Geist-SemiBold.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Geist";
-  src:url("../fonts/Geist-Variable.woff2") format("woff2");
+  src:url("../fonts/Geist-Bold.woff2") format("woff2");
   font-weight:700; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Geist Mono";
-  src:url("../fonts/GeistMono-Variable.woff2") format("woff2");
+  src:url("../fonts/GeistMono-Regular.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Geist Mono";
-  src:url("../fonts/GeistMono-Variable.woff2") format("woff2");
+  src:url("../fonts/GeistMono-SemiBold.woff2") format("woff2");
   font-weight:600; font-style:normal; font-display:swap;
 }
 @font-face{
   font-family:"Instrument Serif";
-  src:url("../fonts/InstrumentSerif-Regular.woff2") format("woff2");
+  src:url("../fonts/InstrumentSerif-Static.woff2") format("woff2");
   font-weight:400; font-style:normal; font-display:swap;
 }
 
@@ -156,6 +161,10 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-of
 .plat[aria-pressed="true"] .dot{background:var(--granted)}
 .plat:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .plat-note{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-top:10px;font-style:italic}
+
+.note-box{margin-top:14px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+.note-box .kicker{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay);font-weight:700;margin-bottom:7px}
+.note-box p{font-size:12.5px;color:var(--body);line-height:1.6;margin:0}
 
 /* ---------- dropzone ---------- */
 .dropzone{border:1.5px dashed var(--line);border-radius:16px;padding:28px 18px;text-align:center;background:var(--surface-2);cursor:pointer;transition:.15s;margin-top:6px}
