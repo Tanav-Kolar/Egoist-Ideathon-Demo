@@ -101,24 +101,6 @@ export function phash(imgSource) {
   return bits;
 }
 
-/** Average-hash fallback / secondary readout — simple 8x8 mean threshold. */
-export function ahash(imgSource) {
-  const size = 8;
-  const c = document.createElement('canvas');
-  c.width = size; c.height = size;
-  const ctx = c.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(imgSource, 0, 0, size, size);
-  const { data } = ctx.getImageData(0, 0, size, size);
-  const lum = [];
-  for (let i = 0; i < size * size; i++) {
-    lum.push(0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2]);
-  }
-  const mean = lum.reduce((a, b) => a + b, 0) / lum.length;
-  let bits = '';
-  for (const v of lum) bits += v >= mean ? '1' : '0';
-  return bits;
-}
-
 /** Hamming distance between two equal-length bit strings. */
 export function hamming(a, b) {
   let d = 0;
