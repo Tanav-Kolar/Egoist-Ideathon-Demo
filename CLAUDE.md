@@ -36,6 +36,14 @@ The creator is **Robin Swift**, a fictional persona; they/them.
 **Never use "Juno Kade"** — that is a real Egoist persona from ego.ist's landing page.
 
 ## Model rules
+- **Platform connectors are multi-select.** A creator can connect to several publishing
+  platforms at once (e.g. Behance + Dribbble + Pinterest + Shutterstock simultaneously)
+  and one upload registers the fingerprint for all of them in a single call. This is a
+  deliberate illustration of the core claim: the fingerprint is content-derived and
+  platform-agnostic, so one work publishing to N platforms still yields exactly ONE
+  registry pointer (the existing Hamming de-dupe in `registerFingerprint` already
+  guarantees this). Which platforms were involved is UI/API-log flavor only — it is
+  never written into the registry entry itself.
 - **No territory.** Not in the policy, the form, the response scope, or the decision engine.
 - **No `revoked` flag and no revoke button.** Revocation is performed by *changing the
   standing policy* — flipping AI training `allowed → denied`, or narrowing the use scope

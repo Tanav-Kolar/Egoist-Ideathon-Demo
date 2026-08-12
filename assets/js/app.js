@@ -60,14 +60,16 @@ $('savePolicy').onclick = () => {
   toast('Policy saved to Passport vault');
 };
 
-/* ---------------- Platform lens ---------------- */
+/* ---------------- Platform lens (multi-select connectors) ---------------- */
 $('platforms').addEventListener('click', e => {
   const p = e.target.closest('.plat');
   if (!p) return;
-  [...$('platforms').children].forEach(x => x.setAttribute('aria-pressed', 'false'));
-  p.setAttribute('aria-pressed', 'true');
-  resolver.setConnectedPlatform(p.dataset.plat);
-  $('platformHint').textContent = 'Connected to ' + p.dataset.plat + '. Now upload a work.';
+  const nowPressed = p.getAttribute('aria-pressed') !== 'true';
+  p.setAttribute('aria-pressed', String(nowPressed));
+  const selected = resolver.toggleConnectedPlatform(p.dataset.plat);
+  $('platformHint').textContent = selected.length
+    ? `Connected to ${selected.join(', ')}. Now upload a work — one upload publishes to all ${selected.length}.`
+    : 'Select at least one platform, then upload a work.';
 });
 
 async function publishFromURL(url, name, sampleSrcForPersistence) {
@@ -77,14 +79,15 @@ async function publishFromURL(url, name, sampleSrcForPersistence) {
 
 async function publishImage(img, previewURL, name, sampleSrcForPersistence) {
   if (!resolver.getState().policy) { toast('Set a policy first (Role ①)'); switchLens('creator'); return; }
-  if (!resolver.getState().connectedPlatform) { toast('Connect a platform first'); return; }
+  const platforms = resolver.getState().connectedPlatforms;
+  if (!platforms.length) { toast('Connect at least one platform first'); return; }
 
   const bits = phash(img);
   const hex = toHex(bits);
 
   resolver.registerFingerprint({
     fpBits: bits,
-    platform: resolver.getState().connectedPlatform,
+    platforms,
     name,
     src: sampleSrcForPersistence || null, // only sample paths persist; user files stay in-memory
   });
@@ -96,12 +99,17 @@ async function publishImage(img, previewURL, name, sampleSrcForPersistence) {
   drawGlyph($('pubGlyph'), bits);
   $('pubFp').classList.add('show');
   $('pubStatus').textContent = 'registered → ' + resolver.getState().policy.policyId;
+  $('pubPlatforms').innerHTML = platforms.length > 1
+    ? `Published simultaneously to <b>${platforms.length} platforms</b>: ${platforms.join(', ')} — same fingerprint, same pointer, everywhere.`
+    : `Published to <b>${platforms[0]}</b>.`;
 
   $('verSameBtn').disabled = false;
   $('verModBtn').disabled = false;
 
   refresh();
-  $('platformHint').textContent = '✓ Fingerprinted and bound to your policy. Switch to Role ③ to check a copy.';
+  $('platformHint').textContent = platforms.length > 1
+    ? `✓ Fingerprinted once, registered across all ${platforms.length} connected platforms. Switch to Role ③ to check a copy.`
+    : '✓ Fingerprinted and bound to your policy. Switch to Role ③ to check a copy.';
   toast('Work fingerprinted & registered');
 }
 
@@ -269,4 +277,9 @@ if (resolver.getState().lastPublished) {
   $('verSameBtn').disabled = false;
   $('verModBtn').disabled = false;
 }
+// restore which platform connectors were toggled on before a reload
+const savedPlatforms = resolver.getState().connectedPlatforms;
+$('platforms').querySelectorAll('.plat').forEach(btn => {
+  btn.setAttribute('aria-pressed', String(savedPlatforms.includes(btn.dataset.plat)));
+});
 refresh();

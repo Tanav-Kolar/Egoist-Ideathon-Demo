@@ -27,7 +27,11 @@ function emptyState() {
     policy: null,          // the single standing policy object, or null before first save
     registry: [],           // [{ fingerprint, policyRef, registeredAt }] — pointer only, ever
     receipts: [],           // [{ who, at, purpose, result, reference }]
-    connectedPlatform: null,
+    connectedPlatforms: [],  // multi-select: a creator can publish to several platforms at
+                             // once. The fingerprint is content-derived and platform-agnostic,
+                             // so this only affects which connectors show as active — one
+                             // publish still yields exactly one registry pointer (see the
+                             // de-dupe in registerFingerprint).
     lastPublished: null,    // { src, name, fpBits } — src is a same-origin sample path only;
                              // user-dropped files are never persisted (quota + privacy)
     apiLog: [],              // [{ method, endpoint, request, response, at }]
@@ -95,13 +99,19 @@ export function savePolicy({ useScope, expiry, aiTraining }) {
   return { policy: state.policy, isFirstSave };
 }
 
-/* ---------------- POST /register — platform binds fingerprint -> policyRef at upload ---------------- */
-export function registerFingerprint({ fpBits, platform, name, src }) {
+/* ---------------- POST /register — platform(s) bind fingerprint -> policyRef at upload ---------------- */
+export function registerFingerprint({ fpBits, platforms, name, src }) {
   if (!state.policy) throw new Error('no policy set');
-  const request = { fingerprint: fpBits, policyRef: state.policy.policyId };
+  const platformList = platforms && platforms.length ? platforms : [];
+  // The request is illustrative of "N connectors publishing the same work at once" —
+  // but note the registry entry itself (the response) never records which platforms
+  // were involved. One piece of content -> one pointer, no matter how many places it
+  // was simultaneously published to.
+  const request = { fingerprint: fpBits, policyRef: state.policy.policyId, platforms: platformList };
 
-  // de-dupe: if this exact work (within match threshold) is already registered, just
-  // refresh its timestamp rather than creating a duplicate pointer.
+  // de-dupe: if this exact work (within match threshold) is already registered — even
+  // from a different platform selection — just refresh its timestamp rather than
+  // creating a duplicate pointer. Same content, same fingerprint, same one entry.
   const existing = state.registry.find(r => hammingLocal(r.fingerprint, fpBits) <= 10);
   let entry;
   if (existing) {
@@ -115,7 +125,7 @@ export function registerFingerprint({ fpBits, platform, name, src }) {
   // lastPublished is UI convenience state for the quick-verify buttons — NOT part of
   // the resolver/registry model. Only same-origin sample paths get persisted; a
   // user-dropped file's bytes stay in memory only (see fileToLastPublished below).
-  state.lastPublished = { src: src || null, name: name || 'untitled', fpBits, platform };
+  state.lastPublished = { src: src || null, name: name || 'untitled', fpBits, platforms: platformList };
 
   const response = { ...entry };
   logApiCall('POST', '/register', request, response);
@@ -201,9 +211,12 @@ export function writeReceipt({ who, purpose, result, reference }) {
   return receipt;
 }
 
-export function setConnectedPlatform(name) {
-  state.connectedPlatform = name;
+export function toggleConnectedPlatform(name) {
+  const i = state.connectedPlatforms.indexOf(name);
+  if (i === -1) state.connectedPlatforms.push(name);
+  else state.connectedPlatforms.splice(i, 1);
   persist();
+  return state.connectedPlatforms;
 }
 
 export function resetAll() {

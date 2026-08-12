@@ -71,12 +71,12 @@
       <!-- PLATFORM -->
       <section class="panel hidden" id="panel-platform">
         <h2><span class="step">02</span> Publish &amp; fingerprint</h2>
-        <p class="desc">Connect a platform where you publish, then upload an image. On publish, the platform computes a real perceptual hash of the pixels and registers <span style="font-family:var(--mono)">fingerprint → policyRef</span> in the resolver. Only the pointer is stored — never your policy, never the image, never your name.</p>
+        <p class="desc">Connect the platforms where you publish — select as many as apply — then upload an image once. On publish, the fingerprint is computed from the pixels and the same <span style="font-family:var(--mono)">fingerprint → policyRef</span> pointer is registered for every connected platform simultaneously: one work, one pointer, wherever it travels. Only the pointer is stored — never your policy, never the image, never your name.</p>
         <div class="divider"></div>
 
         <div class="field">
-          <label>Connect a publishing platform</label>
-          <div class="platforms" id="platforms">
+          <label>Connect publishing platforms</label>
+          <div class="platforms" id="platforms" role="group" aria-label="Select one or more publishing platforms">
             <button class="plat" type="button" data-plat="Shutterstock" aria-pressed="false"><span class="dot"></span>Shutterstock</button>
             <button class="plat" type="button" data-plat="Getty" aria-pressed="false"><span class="dot"></span>Getty</button>
             <button class="plat" type="button" data-plat="Behance" aria-pressed="false"><span class="dot"></span>Behance</button>
@@ -84,7 +84,7 @@
             <button class="plat" type="button" data-plat="Pinterest" aria-pressed="false"><span class="dot"></span>Pinterest</button>
             <button class="plat" type="button" data-plat="Substack" aria-pressed="false"><span class="dot"></span>Substack</button>
           </div>
-          <div class="plat-note">Illustrative integration model — connectors shown are not live production integrations.</div>
+          <div class="plat-note">Illustrative integration model — connectors shown are not live production integrations. Select multiple to publish to all of them at once; your terms travel with the fingerprint, not any one platform.</div>
         </div>
 
         <div class="field">
@@ -111,6 +111,7 @@
             <div class="h">perceptual fingerprint (DCT pHash, 64-bit)</div>
             <div class="fp-hash" id="pubHash">—</div>
             <span class="fp-status reg" id="pubStatus">registered → policy</span>
+            <div class="fp-platforms" id="pubPlatforms"></div>
           </div>
         </div>
         <div class="hint" id="platformHint" role="status"></div>
