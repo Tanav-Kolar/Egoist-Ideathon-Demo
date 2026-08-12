@@ -1,7 +1,16 @@
-# Coathook — Egoist Ideathon Demo
+# Egoist VISA — Egoist Ideathon Demo
+
+## Product name
+The product is **Egoist VISA** (wordmark "EGOIST" + product name "VISA", lockup styled
+the same way ego.ist pairs "EGOIST" with "AI Passport"). It was built and originally
+named **"Coathook"** — `build-spec.md` and `coathook-demo.html` still use that working
+title throughout, and their filenames are unchanged since they're historical reference
+docs, not part of the deployed app. **Do not reintroduce "Coathook" anywhere user-facing**
+(page title, headline, console messages, README) — that name is retired.
 
 ## Sources of truth
-- `build-spec.md` is authoritative for flow, architecture, data model, and honest labeling.
+- `build-spec.md` is authoritative for flow, architecture, data model, and honest labeling
+  (written under the "Coathook" working title — see Product name above).
 - `coathook-demo.html` is a **flow and layout reference only** — lens structure, vault-rail
   composition, receipt-ledger pattern. **Do not take its palette.** Its warm-paper/ledger
   colors are superseded by the Egoist skin below.
@@ -36,6 +45,9 @@ The creator is **Robin Swift**, a fictional persona; they/them.
 **Never use "Juno Kade"** — that is a real Egoist persona from ego.ist's landing page.
 
 ## Model rules
+- **Platform connectors are visual/media platforms only.** Shutterstock, Getty, Behance,
+  Dribbble, Pinterest — no Substack or other text/newsletter platforms. The product is
+  scoped to creative-image licensing, not general content distribution.
 - **Platform connectors are multi-select.** A creator can connect to several publishing
   platforms at once (e.g. Behance + Dribbble + Pinterest + Shutterstock simultaneously)
   and one upload registers the fingerprint for all of them in a single call. This is a
@@ -44,6 +56,11 @@ The creator is **Robin Swift**, a fictional persona; they/them.
   registry pointer (the existing Hamming de-dupe in `registerFingerprint` already
   guarantees this). Which platforms were involved is UI/API-log flavor only — it is
   never written into the registry entry itself.
+- **Policy is fingerprint-bound, never per-platform.** Explained in-UI (the "why one
+  policy, not one per platform" note box in the Platform lens): a verifier checking a
+  stripped/reposted copy has no trustworthy way to know which platform it came from, so
+  per-platform terms would depend on an unverifiable claim about origin. One fingerprint,
+  one live policy, everywhere it's checked.
 - **No territory.** Not in the policy, the form, the response scope, or the decision engine.
 - **No `revoked` flag and no revoke button.** Revocation is performed by *changing the
   standing policy* — flipping AI training `allowed → denied`, or narrowing the use scope

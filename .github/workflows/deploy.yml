@@ -1,4 +1,4 @@
-name: Deploy Coathook to GitHub Pages
+name: Deploy Egoist VISA to GitHub Pages
 
 on:
   push:

@@ -10,7 +10,7 @@
 import { hamming, MATCH_THRESHOLD } from './phash.js';
 import { evaluate } from './policy.js';
 
-const STORAGE_KEY = 'coathook_v1';
+const STORAGE_KEY = 'egoist_visa_v1';
 const HOLDER = 'Robin Swift';
 const POLICY_ID = 'pol_8f21'; // stable across edits — the pointer never changes, only what it points to
 
@@ -54,7 +54,7 @@ export function load() {
       state = { ...emptyState(), ...parsed };
     }
   } catch (e) {
-    console.warn('Coathook: could not load saved state', e);
+    console.warn('Egoist VISA: could not load saved state', e);
   }
   return state;
 }
@@ -64,7 +64,7 @@ function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   } catch (e) {
-    console.error('Coathook: localStorage write failed (quota?)', e);
+    console.error('Egoist VISA: localStorage write failed (quota?)', e);
     return false;
   }
 }
