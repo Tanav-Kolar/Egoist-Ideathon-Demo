@@ -1,0 +1,66 @@
+name: Deploy Coathook to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time; a newer push cancels an in-flight one rather than queuing.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  # Re-proves the perceptual-hash match/separation guarantee in a real headless browser
+  # before anything is published. See build-spec.md §8 and tools/phash-check.html.
+  phash-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Serve the static site
+        run: python3 -m http.server 8080 &
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:8080/index.html > /dev/null && exit 0
+            sleep 0.5
+          done
+          echo "server did not come up" && exit 1
+      - name: Run the pHash risk gate
+        run: npm run gate
+
+  deploy:
+    needs: phash-gate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the deploy artifact
+        # Ship only what the app needs — not build-spec.md, CLAUDE.md, coathook-demo.html,
+        # package.json, or CI scripts, which are steering/reference docs and tooling, not
+        # part of the public demo.
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp README.md _site/
+          cp -R assets _site/assets
+          mkdir -p _site/tools
+          cp tools/phash-check.html _site/tools/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

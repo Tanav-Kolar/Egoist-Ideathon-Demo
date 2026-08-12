@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coathook — an AI Passport for creative licensing</title>
+<meta name="description" content="Set a licence once. It's fingerprinted into your work and travels with it — strip the file, rename it, re-upload it anywhere, the fingerprint still carries your current terms home.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311100e'/%3E%3Cpath d='M9 20 L16 9 L23 20' stroke='%23fafaf7' stroke-width='2.4' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='23' r='2' fill='%23fafaf7'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/coathook.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div>
+      <div class="wordmark">EGOIST</div>
+      <div class="kicker">AI Passport Ideathon · Creative track</div>
+      <h1>Coathook — a licence that <em>travels with the work</em>.</h1>
+    </div>
+    <div class="sub">Set terms once in your AI Passport. Your work is fingerprinted at publish. Any copy — recompressed, renamed, re-uploaded — still resolves to your current, live terms. The fingerprinting below is real and runs in your browser.</div>
+  </header>
+
+  <p class="pitch">Play all three roles in order: <b>① a creator</b> sets a scoped, expiring permission in their AI Passport vault → <b>② a platform</b> fingerprints their upload and binds it to that policy → <b>③ anyone</b> can check a copy of the work and get its live licence status, without learning who the creator is. Try checking a recompressed copy at the verify step — it still matches, because the fingerprint comes from the pixels, not the file.</p>
+
+  <div class="topbar">
+    <div class="lenses" role="group" aria-label="Choose role">
+      <button id="lens-creator" aria-pressed="true" type="button"><span class="n">ROLE ①</span>Creator · set policy</button>
+      <button id="lens-platform" aria-pressed="false" type="button"><span class="n">ROLE ②</span>Platform · publish</button>
+      <button id="lens-verifier" aria-pressed="false" type="button"><span class="n">ROLE ③</span>Verifier · check</button>
+    </div>
+    <button class="reset-btn" id="resetDemo" type="button">↺ Reset demo</button>
+  </div>
+
+  <div class="layout">
+    <div>
+      <!-- CREATOR -->
+      <section class="panel" id="panel-creator">
+        <h2><span class="step">01</span> Set your permission</h2>
+        <p class="desc">This is your standing policy — held in your AI Passport vault, not stamped into any file. Every work you publish points back to it, and you can change it at any time. There's no separate "revoke" switch: narrowing the scope or turning off AI training <em>is</em> revocation, because every check reads the live policy.</p>
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Allowed uses</label>
+          <div class="chips" id="useChips">
+            <button class="chip" type="button" data-use="web" aria-pressed="true">Web</button>
+            <button class="chip" type="button" data-use="print" aria-pressed="false">Print</button>
+            <button class="chip" type="button" data-use="editorial" aria-pressed="true">Editorial</button>
+            <button class="chip" type="button" data-use="commercial" aria-pressed="false">Commercial</button>
+            <button class="chip" type="button" data-use="broadcast" aria-pressed="false">Broadcast</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Licence expiry</label>
+          <input type="date" id="expiry" value="2027-03-01">
+        </div>
+
+        <div class="field">
+          <label>AI training</label>
+          <div class="seg-toggle" id="aiToggle">
+            <button type="button" data-ai="allowed" aria-pressed="false" class="grant">Allow</button>
+            <button type="button" data-ai="if-licensed" aria-pressed="false">If licensed</button>
+            <button type="button" data-ai="denied" aria-pressed="true" class="deny">Don't train</button>
+          </div>
+        </div>
+
+        <button class="btn" id="savePolicy" type="button">Save to Passport vault →</button>
+        <div class="hint" id="creatorHint" role="status"></div>
+      </section>
+
+      <!-- PLATFORM -->
+      <section class="panel hidden" id="panel-platform">
+        <h2><span class="step">02</span> Publish &amp; fingerprint</h2>
+        <p class="desc">Connect a platform where you publish, then upload an image. On publish, the platform computes a real perceptual hash of the pixels and registers <span style="font-family:var(--mono)">fingerprint → policyRef</span> in the resolver. Only the pointer is stored — never your policy, never the image, never your name.</p>
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Connect a publishing platform</label>
+          <div class="platforms" id="platforms">
+            <button class="plat" type="button" data-plat="Shutterstock" aria-pressed="false"><span class="dot"></span>Shutterstock</button>
+            <button class="plat" type="button" data-plat="Getty" aria-pressed="false"><span class="dot"></span>Getty</button>
+            <button class="plat" type="button" data-plat="Behance" aria-pressed="false"><span class="dot"></span>Behance</button>
+            <button class="plat" type="button" data-plat="Dribbble" aria-pressed="false"><span class="dot"></span>Dribbble</button>
+            <button class="plat" type="button" data-plat="Pinterest" aria-pressed="false"><span class="dot"></span>Pinterest</button>
+            <button class="plat" type="button" data-plat="Substack" aria-pressed="false"><span class="dot"></span>Substack</button>
+          </div>
+          <div class="plat-note">Illustrative integration model — connectors shown are not live production integrations.</div>
+        </div>
+
+        <div class="field">
+          <label>Upload work to publish</label>
+          <div class="dropzone" id="pubDrop" tabindex="0" role="button" aria-label="Upload an image to publish">
+            <div class="big">Drop an image, or click to choose</div>
+            <div class="small">Runs a real perceptual hash locally — nothing is uploaded anywhere.</div>
+          </div>
+          <div class="samples">
+            <span class="lbl">or use a sample:</span>
+            <img class="sample-thumb" data-sample="studio-rig" src="assets/samples/studio-rig.jpg" alt="Sample: studio rig" tabindex="0" role="button">
+            <img class="sample-thumb" data-sample="neon-signage" src="assets/samples/neon-signage.jpg" alt="Sample: neon signage" tabindex="0" role="button">
+            <img class="sample-thumb" data-sample="ink-bloom" src="assets/samples/ink-bloom.jpg" alt="Sample: ink bloom" tabindex="0" role="button">
+          </div>
+        </div>
+
+        <div class="fp-result" id="pubFp">
+          <div class="fp-imgwrap">
+            <img class="fp-preview" id="pubPreview" alt="uploaded work">
+            <div class="fp-imgcap" id="pubCap">—</div>
+          </div>
+          <canvas class="fp-glyph" id="pubGlyph" width="8" height="8"></canvas>
+          <div class="fp-detail">
+            <div class="h">perceptual fingerprint (DCT pHash, 64-bit)</div>
+            <div class="fp-hash" id="pubHash">—</div>
+            <span class="fp-status reg" id="pubStatus">registered → policy</span>
+          </div>
+        </div>
+        <div class="hint" id="platformHint" role="status"></div>
+      </section>
+
+      <!-- VERIFIER -->
+      <section class="panel hidden" id="panel-verifier">
+        <h2><span class="step">03</span> Check a work's licence</h2>
+        <p class="desc">A licensing buyer, a CMS, or an AI trainer has a copy of an image. They fingerprint it and ask the resolver for its current terms. Try a <b>recompressed copy</b> of a published work — it still resolves, because the match is on content, not filename. The check returns terms only; the holder's identity stays withheld.</p>
+        <div class="divider"></div>
+
+        <div class="field">
+          <label>Checking as</label>
+          <select id="verifierIdentity">
+            <option value="Northwind CMS">Northwind CMS</option>
+            <option value="a licensing buyer">a licensing buyer</option>
+            <option value="an AI trainer">an AI trainer</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Intended use to check</label>
+          <div class="use-select chips" id="checkUse">
+            <button class="chip" type="button" data-cuse="web" aria-pressed="true">Web use</button>
+            <button class="chip" type="button" data-cuse="commercial-ad" aria-pressed="false">Commercial ad</button>
+            <button class="chip" type="button" data-cuse="print" aria-pressed="false">Print</button>
+            <button class="chip" type="button" data-cuse="broadcast" aria-pressed="false">Broadcast</button>
+            <button class="chip" type="button" data-cuse="ai-training" aria-pressed="false">AI training</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Image to verify</label>
+          <div class="dropzone" id="verDrop" tabindex="0" role="button" aria-label="Upload an image to verify">
+            <div class="big">Drop a copy to check, or click to choose</div>
+            <div class="small">Recompress, rename, or resize a published image — it should still match.</div>
+          </div>
+          <div class="samples">
+            <span class="lbl">quick test:</span>
+            <button class="btn ghost sm" id="verSameBtn" disabled type="button">Check the exact file</button>
+            <button class="btn ghost sm" id="verModBtn" disabled type="button">Check a recompressed copy</button>
+            <button class="btn ghost sm" id="verDecoyBtn" type="button">Check an unregistered image</button>
+          </div>
+        </div>
+
+        <div class="verdict-card" id="verdict">
+          <div class="verdict-head"><span class="badge" id="vBadge">—</span><span id="vTitle">—</span></div>
+          <div class="verdict-reason" id="vReason">—</div>
+          <div class="verdict-delta" id="vDelta" style="display:none"></div>
+          <div class="glyph-compare" id="vGlyphs" style="display:none"></div>
+          <div class="scoped-return" id="vScoped"></div>
+          <div class="withheld" id="vWithheld" style="display:none">creator identity withheld</div>
+          <div class="match-meta" id="vMeta">—</div>
+        </div>
+        <div class="hint" id="verifierHint" role="status"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT RAIL -->
+    <aside class="rail">
+      <div class="vault">
+        <div class="vault-top"><span class="t">AI Passport · Vault</span><span class="globe"></span></div>
+        <div class="vault-holder">
+          <div class="role">Holder · creator</div>
+          <div class="name">Robin Swift</div>
+          <div class="updated" id="vaultUpdated"></div>
+        </div>
+        <div class="vault-section">
+          <div class="h"><span>Standing policy</span></div>
+          <div id="vaultPolicy"><div class="pol-empty">No policy set yet.</div></div>
+        </div>
+        <div class="vault-section">
+          <div class="h"><span>Resolver registry</span><span id="regCount" style="color:var(--ink);font-weight:700">0</span></div>
+          <div class="reg-list" id="regList"><div class="reg-empty">No works registered.</div></div>
+        </div>
+        <div class="vault-section">
+          <div class="h"><span>Receipt ledger</span><span id="ledgerCount" style="color:var(--ink);font-weight:700">0</span></div>
+          <div class="ledger" id="ledger"><div class="ledger-empty">No checks yet.</div></div>
+        </div>
+      </div>
+
+      <details class="api-card">
+        <summary>Integration API</summary>
+        <div class="api-body">
+          <div><span class="ep">POST /policy</span> — creator sets vault policy</div>
+          <div><span class="ep">POST /register</span> — platform binds fingerprint→policyRef</div>
+          <div><span class="ep">POST /resolve</span> — verifier checks fingerprint→scoped decision</div>
+          <div><span class="ep">POST /receipt</span> — verifier writes back a receipt</div>
+          <div id="apiLastCall"></div>
+        </div>
+      </details>
+
+      <details class="api-card">
+        <summary>About this demo</summary>
+        <div class="api-body">
+          <div>The perceptual hash and Hamming matching are <b style="color:var(--ink)">real</b> and run in your browser — nothing is uploaded.</div>
+          <div style="margin-top:8px">Platform connectors are an <b style="color:var(--ink)">illustrative integration model</b>, not live production integrations.</div>
+          <div style="margin-top:8px">The resolver here is client-side (localStorage). In production it is a hardened, optionally federated service — identity is protected via unlinkable references.</div>
+          <div style="margin-top:8px">The permission is <b style="color:var(--ink)">evidentiary/checkable, not DRM</b> — it enables compliant checking and portable proof, it does not physically prevent misuse.</div>
+        </div>
+      </details>
+    </aside>
+  </div>
+
+  <footer class="foot">
+    <div><b>What's real here:</b> the perceptual hash (DCT-based pHash over a 32×32 luma block) and Hamming-distance matching run live in your browser. A recompressed or renamed copy produces a near-identical fingerprint and matches.</div>
+    <div style="margin-top:6px"><b>What's illustrative:</b> platform connectors are a shown integration model, not live production links. In production the resolver is a hardened service; identity is protected by unlinkable references, and the guarantee is checkable/evidentiary, not DRM.</div>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

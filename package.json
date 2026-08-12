@@ -1,0 +1,11 @@
+{
+  "name": "coathook-ci",
+  "private": true,
+  "description": "CI-only tooling. The app itself (index.html + assets/) is a zero-dependency static site with no build step — this package.json exists solely so GitHub Actions can run the automated pHash risk-gate (tools/ci-phash-gate.mjs) before every deploy.",
+  "scripts": {
+    "gate": "node tools/ci-phash-gate.mjs"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.0.0"
+  }
+}

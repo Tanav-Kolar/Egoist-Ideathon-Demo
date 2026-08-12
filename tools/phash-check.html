@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>pHash risk gate — distance matrix</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2311100e'/%3E%3Cpath d='M9 20 L16 9 L23 20' stroke='%23fafaf7' stroke-width='2.4' fill='none' stroke-linejoin='round' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='23' r='2' fill='%23fafaf7'/%3E%3C/svg%3E">
+<style>
+  body{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fafaf7;color:#11100e;padding:24px;font-size:13px}
+  h1{font-size:16px;margin-bottom:4px}
+  p{color:#55544f;max-width:70ch;margin-bottom:16px}
+  table{border-collapse:collapse;margin-top:12px}
+  td,th{border:1px solid #e9e8e3;padding:6px 10px;text-align:center;min-width:70px}
+  th{background:#f6f6f4;font-weight:600}
+  .pass{color:#1a7a4a;font-weight:700}
+  .fail{color:#b3261e;font-weight:700;background:#fbf3f2}
+  .verdict{margin-top:20px;padding:12px 16px;border-radius:8px;font-weight:700}
+  .verdict.ok{background:#eafaf1;color:#1a7a4a;border:1px solid #1a7a4a}
+  .verdict.bad{background:#fbf3f2;color:#b3261e;border:1px solid #b3261e}
+  img{width:48px;height:48px;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid #e9e8e3}
+</style>
+</head>
+<body>
+<h1>pHash risk gate</h1>
+<p>
+  Imports the exact same <code>phash.js</code> module the app uses (no algorithm drift),
+  computes the fingerprint of every sample, its modified copy, and the decoy, and prints
+  the full Hamming-distance matrix. Required before building any UI — build-spec.md §8 /
+  §12, step 2.
+</p>
+<p>
+  <strong>Must be served over HTTP</strong> (<code>python3 -m http.server 8080</code> from
+  the repo root, then open <code>/tools/phash-check.html</code>) — <code>file://</code>
+  taints the canvas and getImageData() will throw.
+</p>
+<div id="out">computing…</div>
+
+<script type="module">
+import { phash, hamming, toHex, prettyHex, loadImageFromURL, MATCH_THRESHOLD } from '../assets/js/phash.js';
+
+const files = [
+  { label: 'studio-rig (orig)',    src: '../assets/samples/studio-rig.jpg',            group: 'studio' },
+  { label: 'IMG_4471_repost',      src: '../assets/samples/IMG_4471_repost.jpg',       group: 'studio' },
+  { label: 'neon-signage (orig)',  src: '../assets/samples/neon-signage.jpg',          group: 'neon' },
+  { label: 'signage_final_v2',     src: '../assets/samples/signage_final_v2.jpg',      group: 'neon' },
+  { label: 'ink-bloom (orig)',     src: '../assets/samples/ink-bloom.jpg',             group: 'ink' },
+  { label: 'bloom_export',         src: '../assets/samples/bloom_export.jpg',          group: 'ink' },
+  { label: 'decoy-unregistered',   src: '../assets/samples/decoy-unregistered.jpg',    group: 'decoy' },
+];
+
+async function run() {
+  const out = document.getElementById('out');
+  const rows = [];
+  for (const f of files) {
+    const img = await loadImageFromURL(f.src);
+    const bits = phash(img);
+    rows.push({ ...f, bits, hex: toHex(bits) });
+  }
+
+  let html = '<table><tr><th></th>' + rows.map(r => `<th>${r.label}</th>`).join('') + '</tr>';
+  const failures = [];
+  for (const a of rows) {
+    html += `<tr><th>${a.label}</th>`;
+    for (const b of rows) {
+      const d = hamming(a.bits, b.bits);
+      const sameGroup = a.group === b.group;
+      const isSelf = a === b;
+      let cls = '';
+      let required;
+      if (isSelf) { required = 'n/a'; }
+      else if (sameGroup) {
+        required = '≤8';
+        if (d > 8) { cls = 'fail'; failures.push(`${a.label} vs ${b.label}: expected ≤8, got ${d}`); }
+        else cls = 'pass';
+      } else {
+        required = '≥20';
+        if (d < 20) { cls = 'fail'; failures.push(`${a.label} vs ${b.label}: expected ≥20, got ${d}`); }
+        else cls = 'pass';
+      }
+      html += `<td class="${cls}">${isSelf ? '—' : d}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+
+  html += '<h2 style="margin-top:20px;font-size:14px">fingerprints</h2>';
+  for (const r of rows) {
+    html += `<div style="margin:4px 0"><img src="${r.src}">${r.label}: ${prettyHex(r.hex)}</div>`;
+  }
+
+  html += `<div class="verdict ${failures.length ? 'bad' : 'ok'}">` +
+    (failures.length
+      ? `GATE FAILED — ${failures.length} pair(s) outside threshold (match ≤ ${MATCH_THRESHOLD}):<br>` + failures.join('<br>')
+      : `GATE PASSED — every modified copy matches its original (≤8 bits), every cross-image and decoy pair is well-separated (≥20 bits). Match threshold in app: ${MATCH_THRESHOLD} bits.`)
+    + '</div>';
+
+  out.innerHTML = html;
+}
+run().catch(e => {
+  document.getElementById('out').innerHTML =
+    `<div class="verdict bad">ERROR: ${e.message}<br>Are you serving this over HTTP, not file://?</div>`;
+  console.error(e);
+});
+</script>
+</body>
+</html>

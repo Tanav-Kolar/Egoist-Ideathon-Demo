@@ -1,0 +1,12 @@
+Fonts in this directory — Geist, Geist Mono, and Instrument Serif — are distributed
+under the SIL Open Font License, Version 1.1, and were downloaded from Google Fonts
+(fonts.google.com) for self-hosting so the demo has no runtime dependency on a font CDN.
+
+- Geist & Geist Mono: designed by Vercel. https://vercel.com/font
+- Instrument Serif: designed by Instrument. https://github.com/Instrument/instrument-serif
+
+Each is served here as a single variable-weight woff2 file (Google Fonts returns the
+same static file across the weight range for these families, so one download covers
+the full 400–700 axis used by this project).
+
+Full license text: https://openfontlicense.org
