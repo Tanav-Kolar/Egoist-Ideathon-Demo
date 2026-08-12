@@ -8,7 +8,9 @@ import puppeteer from 'puppeteer';
 
 const URL = process.env.GATE_URL || 'http://localhost:8080/tools/phash-check.html';
 
-const browser = await puppeteer.launch({ headless: 'new' });
+// --no-sandbox: GitHub Actions' ubuntu runners execute as root, and Chromium's sandbox
+// refuses to start as root without it.
+const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 const page = await browser.newPage();
 
 const errors = [];
